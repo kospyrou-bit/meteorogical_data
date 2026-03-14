@@ -54,6 +54,42 @@ ggplot() +
   theme_minimal() +
   labs(title = "Maximum Dry Bulb Temperature by City",
        color = "Max Temperature")
+
+#with facet Mean values
+mean_twb <- final_excel %>%
+  filter(City %in% cities) %>%
+  group_by(City, Time_Period) %>%
+  summarise(Mean_Twb = mean(Twb, na.rm = TRUE), .groups = "drop")
+map_data <- left_join(mean_twb, coords, by = "City")
+map_data <- map_data %>%
+  mutate(label_vjust = ifelse(City == "São Paulo", 2, -1))
+ggplot() +
+  geom_sf(data = brazil, fill = "gray95", color = "black") +
+  
+  # Bigger bubbles
+  geom_point(data = map_data,
+             aes(x = lon, y = lat, color = Mean_Twb),
+             size = 10) +
+  
+  # Mean value inside bubble
+  geom_text(data = map_data,
+            aes(x = lon, y = lat, label = round(Mean_Twb,1)),
+            color = "black",
+            size = 3,
+            fontface = "bold") +
+  
+  # City names (São Paulo below)
+  geom_text(data = map_data,
+            aes(x = lon, y = lat, label = City, vjust = label_vjust),
+            size = 3) +
+  
+  scale_color_gradient(low = "yellow", high = "red") +
+  
+  facet_wrap(~Time_Period, ncol = 2) +
+  
+  theme_minimal() +
+  labs(title = "Mean Wet Bulb Temperature (Twb) by City and Time Period",
+       color = "Mean Twb")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
